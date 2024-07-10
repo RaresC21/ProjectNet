@@ -75,4 +75,3 @@ def get_data():
     X_test_pt = torch.tensor(X_test[:,:-1], dtype=torch.float, device=DEVICE)
     Y_test_pt = torch.tensor(Y_test, dtype=torch.float, device=DEVICE)
     return X_train, Y_train, X_test, Y_test, X_train_pt, Y_train_pt, X_test_pt, Y_test_pt
-

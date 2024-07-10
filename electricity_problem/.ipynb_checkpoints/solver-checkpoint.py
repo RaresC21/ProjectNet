@@ -140,7 +140,7 @@ class SolveScheduling(nn.Module):
         d2g = GQuadraticApprox(self.params["gamma_under"], 
             self.params["gamma_over"])(z0, mu, sig)
         return SolveSchedulingQP(self.params)(z0, mu, dg, d2g)
-
+    
 class SolvePointQP(nn.Module): 
     def __init__(self, params):
         super(SolvePointQP, self).__init__()
@@ -153,14 +153,15 @@ class SolvePointQP(nn.Module):
         G = []
         for i in range(self.n): 
             cur = [0] * self.n_vars 
-            cur[i] = -1 
+            cur[i] = 1 
             cur[i + self.n] = -1
             G.append(cur)
         for i in range(self.n): 
             cur = [0] * self.n_vars 
-            cur[i] = 1 
+            cur[i] = -1 
             cur[i + self.n * 2] = -1 
             G.append(cur)
+            
         for i in range(self.n-1): 
             cur = [0] * self.n_vars 
             cur[i] = 1 
@@ -180,7 +181,7 @@ class SolvePointQP(nn.Module):
         self.G = torch.tensor(G, device=DEVICE).double() 
         self.e = torch.empty(0, device=DEVICE)
 
-        self.Q = torch.eye(self.n_vars, device=DEVICE).double() * 1e-3
+        self.Q = torch.eye(self.n_vars, device=DEVICE).double() #1e-5
         self.p = torch.tensor([0] * self.n + [params['gamma_over'] for _ in range(self.n)] + [params['gamma_under'] for _ in range(self.n)], device=DEVICE).double()
 
     def forward(self, pred):
@@ -188,9 +189,9 @@ class SolvePointQP(nn.Module):
 
         G = self.G.unsqueeze(0).expand(nBatch, self.G.size(0), self.G.size(1))
 
-        ramp_h = self.c_ramp * torch.ones((self.n - 1)*2, device=DEVICE).double() * 2
+        ramp_h = self.c_ramp * torch.ones((self.n - 1)*2, device=DEVICE).double()
         ramp_h = ramp_h.unsqueeze(0).expand(nBatch, ramp_h.size(0))
 
-        h = torch.cat((-pred, pred, ramp_h, torch.zeros(nBatch, self.n_vars, device=DEVICE)), 1)
+        h = torch.cat((pred, -pred, ramp_h, torch.zeros(nBatch, self.n_vars, device=DEVICE)), 1)
 
         return QPFunction(verbose=False)(self.Q, self.p, G, h, self.e, self.e)[:,:24]

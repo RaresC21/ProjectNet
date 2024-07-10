@@ -56,11 +56,8 @@ class ProjectNet(nn.Module):
         self.dim = dim
         
         self.linear = nn.Linear(dim, dim)
-        self.linear1 = nn.Linear(2*dim, 1000)
-        self.linear2 = nn.Linear(1000, dim)
-
-        self.L = nn.Parameter(torch.randn(dim, dim))
-        self.Lambda = nn.Parameter(torch.ones(dim) + torch.randn(dim) * 0.1)
+        self.linearx = nn.Linear(dim, dim)
+        
         self.rho = step #nn.Parameter(torch.ones(1))
         self.xrho = xrho
         
@@ -73,8 +70,7 @@ class ProjectNet(nn.Module):
 
     def step(self, x, y, xrho, rho): 
         diff = x - y
-        grad_step = 2 * diff 
-        learn_step = self.linear(diff)
+        learn_step = self.linear(diff) + self.linearx(x)
         return rho * diff + xrho * learn_step
         # l = F.relu(self.linear1(torch.cat((x,c),dim=1)))
         # l = F.relu(self.linear2(l)) 
@@ -84,7 +80,7 @@ class ProjectNet(nn.Module):
         # return xrho * (self.L @ torch.diag(self.Lambda) @ torch.inverse(self.L) @ x.T).T + rho * c
         # return xrho * x + rho * c
 
-    def forward(self, c, rounds = None, tol = None, xrho = 0.5, factor = None, fixed = False): 
+    def forward(self, c, rounds = None, tol = None, xrho = 0.1, factor = None, fixed = False): 
         if rounds is None: rounds = self.rounds
         if tol is None: tol = self.projection_tolerance
         if factor is None: factor = self.factor

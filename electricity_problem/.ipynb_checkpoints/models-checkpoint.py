@@ -36,7 +36,6 @@ class Net(nn.Module):
     def forward(self, x):
         return self.lin(x) + self.net(x)
     
-    
 class Net2(nn.Module):
     def __init__(self, X, Y, hidden_layer_sizes):
         super(Net2, self).__init__()
