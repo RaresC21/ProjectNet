@@ -76,3 +76,17 @@ def get_data():
     Y_test_pt = torch.tensor(Y_test, dtype=torch.float, device=DEVICE)
     return X_train, Y_train, X_test, Y_test, X_train_pt, Y_train_pt, X_test_pt, Y_test_pt
 
+def get_data_size(n): 
+    X_train, Y_train, X_test, Y_test, X_train_pt, Y_train_pt, X_test_pt, Y_test_pt = get_data() 
+    
+    Y_train_full = [] 
+    for i in range(Y_train.shape[0]-n): 
+        cur_y = Y_train[i:i+n,:].flatten()
+        Y_train_full.append(cur_y)
+
+    Y_test_full = [] 
+    for i in range(Y_test.shape[0]-n): 
+        cur_y = Y_test[i:i+n,:].flatten()
+        Y_test_full.append(cur_y)
+    
+    return torch.tensor(Y_train_full).to(DEVICE).float(), torch.tensor(Y_test_full).to(DEVICE).float()

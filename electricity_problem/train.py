@@ -13,6 +13,10 @@ import time
 def task_loss(Y_sched, Y_actual, params):
     return (params["gamma_under"] * torch.clamp(Y_actual - Y_sched, min=0) + 
             params["gamma_over"] * torch.clamp(Y_sched - Y_actual, min=0) + 0.5 * torch.square(Y_sched - Y_actual)).mean(0)
+    # return (params["gamma_under"] * torch.clamp(Y_actual - Y_sched, min=0) + 
+    #         params["gamma_over"] * torch.clamp(Y_sched - Y_actual, min=0)).mean(0)
+
+
 
 
 def task_loss_no_mean(Y_sched, Y_actual, params):
@@ -43,7 +47,8 @@ def train_projectnet(model, Y_actual, params, epochs = 100, rounds = 1, lr = 0.0
             losses.append(cur_loss)
     
             # if verbose and i//batch_size % 20 == 0:
-        print("epoch ", epoch, " mean loss: ", np.mean(losses[-100:]), " median ", np.median(losses), "cur: ", cur_loss)
+        if epoch % 10 == 0:
+            print("epoch ", epoch, " mean loss: ", np.mean(losses[-100:]), " median ", np.median(losses), "cur: ", cur_loss)
 
     print("MEAN LOSS PROJECT NET: ", np.mean(losses[-100:]))    
     return model, losses
@@ -64,7 +69,7 @@ def train_with_pnet(model, projectnet, train_x, train_y, X_test, Y_test, params,
             optimizer.zero_grad()
             
             pred = model(x)
-            pred = projectnet(pred)
+            pred = projectnet(pred, learn=True)
             
             loss = task_loss(pred, y, params).mean()
             loss.backward()
@@ -75,20 +80,20 @@ def train_with_pnet(model, projectnet, train_x, train_y, X_test, Y_test, params,
         end = time.time()
         length = end - start
         times.append(length)
-                
-        print("epoch ", epoch, " mean loss: ", np.mean(train_losses), "time", np.mean(times))
         
         test_costs = []
         for k in range(X_test.shape[0] // batch_size):
             p = model(X_test[k:k+batch_size,:]).detach()
-            d = projectnet(p, rounds=5)
+            d = projectnet(p, learn=True)
             cost_test = task_loss(d, Y_test[k:k+batch_size,:], params).mean()
             test_costs.append(cost_test.item())
         # p = model(train_x).detach()
         # d = projectnet(p, rounds=5)
         # cost = task_loss(d, train_y, params).mean()
 
-        print("test:", np.mean(test_costs))
+        if epoch % 10 == 0:
+            print("epoch ", epoch, " mean loss: ", np.mean(train_losses), "time", np.mean(times))
+            print("test:", np.mean(test_costs))
 
             
     # print("MEAN MSE: ", np.mean(mses))
@@ -160,7 +165,7 @@ def train_mle_net(model, params, X_train, Y_train):
         length = end - start
         times.append(length)
         
-        print("epoch:", epoch, "loss:", np.mean(losses[-100:]), "times:", np.mean(times))
+        # print("epoch:", epoch, "loss:", np.mean(losses[-100:]), "times:", np.mean(times))
     
     return model
     
