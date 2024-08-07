@@ -65,7 +65,7 @@ def get_data():
     Y = np.concatenate((Y1, Y2), axis=0)
 
     # Train, test split.
-    n_tt = int(len(X) * 0.8)
+    n_tt = int(len(X) * 0.9)
     X_train, Y_train = X[:n_tt], Y[:n_tt]
     X_test, Y_test = X[n_tt:], Y[n_tt:]
 

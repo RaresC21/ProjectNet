@@ -39,7 +39,7 @@ def project_pol(P, A, b, x, DEVICE, n=10, AA = None, tol = 0.01, offset = None):
     return x #project(A, b, x)
 
 class ProjectNet(nn.Module):
-    def __init__(self, A, b, dim, params, step = 3, rounds = 3, projection_count = 100, projection_tolerance = 0.01, factor = 1, xrho = 1e-2, offset = None, learnable=True):
+    def __init__(self, A, b, dim, params, step = 0.1, rounds = 3, projection_count = 100, projection_tolerance = 0.001, factor = 1, xrho = 1e-1, offset = None, learnable=True):
         super(ProjectNet, self).__init__()
 
         self.projection_tolerance = projection_tolerance
@@ -82,7 +82,6 @@ class ProjectNet(nn.Module):
         
         learn_step = self.linear(diff) + self.linearx(x)
         return rho * diff + xrho * learn_step + rho * grad
-        
     
     def step_learn(self, x, y, xrho, rho): 
         diff = x - y
@@ -90,9 +89,9 @@ class ProjectNet(nn.Module):
         
         M = self.MM(diff).reshape(x.shape[0], self.dim, self.dim)
         s=torch.bmm(M, x.unsqueeze(2)).squeeze(2)
-        return xrho * s + rho * grad + rho * diff
+        return xrho * s + (rho * grad + rho * diff)
         
-    
+        
         # l = F.relu(self.linear1(torch.cat((x,c),dim=1)))
         # l = F.relu(self.linear2(l)) 
         # return xrho * l + rho * c

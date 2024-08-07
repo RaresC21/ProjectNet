@@ -27,8 +27,11 @@ class Net(nn.Module):
         # Set up non-linear network of 
         # Linear -> BatchNorm -> ReLU -> Dropout layers
         layer_sizes = [X.shape[1]] + hidden_layer_sizes
+        # layers = reduce(operator.add, 
+        #     [[nn.Linear(a,b), nn.BatchNorm1d(b), nn.ReLU(), nn.Dropout(p=0.2)] 
+        #         for a,b in zip(layer_sizes[0:-1], layer_sizes[1:])])
         layers = reduce(operator.add, 
-            [[nn.Linear(a,b), nn.BatchNorm1d(b), nn.ReLU(), nn.Dropout(p=0.2)] 
+            [[nn.Linear(a,b), nn.ReLU()] 
                 for a,b in zip(layer_sizes[0:-1], layer_sizes[1:])])
         layers += [nn.Linear(layer_sizes[-1], Y.shape[1])]
         self.net = nn.Sequential(*layers)

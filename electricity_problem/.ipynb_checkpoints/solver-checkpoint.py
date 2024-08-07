@@ -181,7 +181,7 @@ class SolvePointQP(nn.Module):
         self.G = torch.tensor(G, device=DEVICE).double() 
         self.e = torch.empty(0, device=DEVICE)
 
-        self.Q = torch.eye(self.n_vars, device=DEVICE).double() * 1e-3
+        self.Q = torch.eye(self.n_vars, device=DEVICE).double() * .5
         self.p = torch.tensor([0] * self.n + [params['gamma_over'] for _ in range(self.n)] + [params['gamma_under'] for _ in range(self.n)], device=DEVICE).double()
 
     def forward(self, pred):
